@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		51442BC52AE952B500F63034 /* TimelineCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51442BC42AE952B500F63034 /* TimelineCarousel.swift */; };
 		51D36CDD29ED4974004504C9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D36CDC29ED4974004504C9 /* AppDelegate.swift */; };
 		51D36CDF29ED4974004504C9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D36CDE29ED4974004504C9 /* SceneDelegate.swift */; };
 		51D36CE129ED4974004504C9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D36CE029ED4974004504C9 /* ViewController.swift */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		51442BC42AE952B500F63034 /* TimelineCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineCarousel.swift; sourceTree = "<group>"; };
 		51D36CD929ED4974004504C9 /* CarouselExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CarouselExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		51D36CDC29ED4974004504C9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		51D36CDE29ED4974004504C9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -62,6 +64,7 @@
 				51D36CDE29ED4974004504C9 /* SceneDelegate.swift */,
 				51D36CE029ED4974004504C9 /* ViewController.swift */,
 				51D36CF029ED4A16004504C9 /* Carousel.swift */,
+				51442BC42AE952B500F63034 /* TimelineCarousel.swift */,
 				51D36CE229ED4974004504C9 /* Main.storyboard */,
 				51D36CE529ED4975004504C9 /* Assets.xcassets */,
 				51D36CE729ED4975004504C9 /* LaunchScreen.storyboard */,
@@ -145,6 +148,7 @@
 				51D36CDD29ED4974004504C9 /* AppDelegate.swift in Sources */,
 				51D36CDF29ED4974004504C9 /* SceneDelegate.swift in Sources */,
 				51D36CF129ED4A16004504C9 /* Carousel.swift in Sources */,
+				51442BC52AE952B500F63034 /* TimelineCarousel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
