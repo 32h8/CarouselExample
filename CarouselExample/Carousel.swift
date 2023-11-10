@@ -85,7 +85,10 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
                 }
                 .onPreferenceChange(WidthPreferenceKey.self) { value in
                     // adds element till avaliable space is filled
-                    if value < geo.size.width {
+                    // starts adding elements in advance to solve glitch in animation of new element
+                    // we make sure that added element is not visible yet
+                    let advance = maxOffsetAbsDelta
+                    if value < geo.size.width + advance {
                         elemCount += 1
                     } else {
                         // removes not visible elements
@@ -109,6 +112,9 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
             if let lastElemId = wrappedData.last?.id,
                let lastElemSize = preferences[lastElemId] {
                 
+                // by adding max delta we make sure that element
+                // was fully invisible before most recent move
+                // otherwise element will disappear too early
                 if xOffset > lastElemSize.width + maxOffsetAbsDelta {
                     xOffset -= lastElemSize.width + spacing
                     elemCount -= 1
