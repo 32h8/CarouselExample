@@ -43,7 +43,7 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
     // positive offset moves toward trailing edge
     // negative offset moves toward leading edge
     @Binding var xOffset: Double
-    let maxOffsetAbsDelta = 50.0 // value to prevent element from dissapearing to early
+    let maxOffsetAbsDelta: Double // value to prevent element from dissapearing to early
     
     @State private var preferences: [Wrapped.NewID: CGSize] = [:]
         
@@ -51,12 +51,14 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
          id: KeyPath<Data.Element, ID>,
          spacing: Double = 10,
          xOffset: Binding<Double>,
+         maxOffsetAbsDelta: Double = 50.0,
          @ViewBuilder content: @escaping (Data.Element, _ batch: Int) -> Content
     ) {
         self.data = data
         self.idKeyPath = id
         self.spacing = spacing
         self._xOffset = xOffset
+        self.maxOffsetAbsDelta = maxOffsetAbsDelta
         self.content = content
     }
 
@@ -209,6 +211,7 @@ struct CarouselPreview: View {
 
     static let interval: TimeInterval = 0.2
     @State private var timer = Timer.publish(every: interval, on: .main, in: .common).autoconnect()
+    @State private var runNum: Int = 0
     
     var body: some View {
         VStack {
@@ -240,12 +243,14 @@ struct CarouselPreview: View {
             }
             .frame(height: 200)
         }
+        .id(runNum)
     }
     
     @ViewBuilder
     private var buttons: some View {
         Group {
             Button("Reset") {
+                runNum += 1
                 xOffset1 = 0
                 xOffset2 = -0.1
             }
