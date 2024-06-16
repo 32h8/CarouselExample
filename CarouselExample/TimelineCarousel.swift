@@ -21,19 +21,20 @@ struct TimelineCarousel: View {
     private struct MyCarousel: View {
         let date: Date
         @State private var xOffset: Double = 0.1
-        private let words: [String] = (1...3).map { "\($0)" }
+        private let words: [Int] = Array(1...5)
         
         var body: some View {
-            Carousel(words.reversed(), id: \.self, xOffset: $xOffset) { (str, batch: Int) in
+            Carousel(words, id: \.self, spacing: 0, xOffset: $xOffset) { (i, batch: Int) in
                 VStack {
-                    Text(str)
+                    Text(String(i))
                     Text("batch: \(batch)")
+                        .multilineTextAlignment(.center)
                 }
-                .frame(width: 100, height: 100)
-                .background(Color.yellow)
+                .frame(width: (i + batch) % 2 == 0 ? 100 : 70, height: 100)
+                .background((i + batch) % 2 == 0 ? Color.yellow : Color.cyan)
             }
             .onChange(of: date) { _ in
-                xOffset += 20
+                xOffset -= 40
             }
             .animation(.linear(duration: TimelineCarousel.interval), value: date)
         }

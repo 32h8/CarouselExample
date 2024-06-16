@@ -40,13 +40,14 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
     @State private var elemCount: Int = 1
     @State private var elemOffset: Int = 0
     
-    // positive offset moves toward trailing edge
     // negative offset moves toward leading edge
+    // if you want to move toward trailing edge then change layoutDirection environment like in example at the bottom of this file
     @Binding var xOffset: Double
-    let maxOffsetAbsDelta: Double // value to prevent element from dissapearing to early
+    // abs changes to xOffset should be less then or equal maxOffsetAbsDelta
+    let maxOffsetAbsDelta: Double
     
     @State private var preferences: [Wrapped.NewID: CGSize] = [:]
-        
+    
     init(_ data: Data,
          id: KeyPath<Data.Element, ID>,
          spacing: Double = 10,
@@ -64,7 +65,7 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
 
     var body: some View {
         VStack {
-//            Text("wrappedData count: \(wrappedData.count)") // for debuging
+            Text("wrappedData count: \(wrappedData.count)") // for debuging
             GeometryReader { geo in
                 HStack(spacing: spacing) {
                     ForEach(wrappedData) { wrapped in
@@ -89,7 +90,8 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
                     // adds element till avaliable space is filled
                     // starts adding elements in advance to solve glitch in animation of new element
                     // we make sure that added element is not visible yet
-                    let advance = maxOffsetAbsDelta
+                    let fixForGap = 200.0 // fixes occasional gap glitch between elems
+                    let advance = maxOffsetAbsDelta + fixForGap
                     if value < geo.size.width + advance {
                         elemCount += 1
                     } else {
@@ -101,7 +103,7 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
                 .frame(
                     width: geo.size.width,
                     height: geo.size.height,
-                    alignment: xOffset >= 0 ? .trailing : .leading)
+                    alignment: .leading)
             }
             .clipped() // comment to debug
         }
@@ -109,42 +111,24 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
     
     // to prevent excessive growth we remove elements that are out of sight
     private func trimElements() {
-        if xOffset > 0 {
-            // removes last element if possible
-            if let lastElemId = wrappedData.last?.id,
-               let lastElemSize = preferences[lastElemId] {
-                
-                // by adding max delta we make sure that element
-                // was fully invisible before most recent move
-                // otherwise element will disappear too early
-                if xOffset > lastElemSize.width + maxOffsetAbsDelta {
-                    xOffset -= lastElemSize.width + spacing
-                    elemCount -= 1
-                    elemOffset += 1
-                }
-            }
-        } else {
-            // removes first element if possible
-            if let firstElemId = wrappedData.first?.id,
-               let firstElemSize = preferences[firstElemId] {
-                
-                if abs(xOffset) > firstElemSize.width + maxOffsetAbsDelta {
-                    xOffset += firstElemSize.width + spacing
-                    elemCount -= 1
-                    elemOffset += 1
-                }
+        // removes first element if possible
+        if let firstElemId = wrappedData.first?.id,
+           let firstElemSize = preferences[firstElemId] {
+            
+            // by adding max delta we make sure that element
+            // was fully invisible before most recent move
+            // otherwise element will disappear too early
+            if abs(xOffset) > firstElemSize.width + maxOffsetAbsDelta {
+                xOffset += firstElemSize.width + spacing
+                elemCount -= 1
+                elemOffset += 1
             }
         }
     }
     
     private var wrappedData: [Wrapped] {
-        if xOffset >= 0 {
-            // data when content moving toward trailing edge
-            return wrappedDataForTrailing
-        } else {
-            // data when content moving toward leading edge
-            return wrappedDataForLeading
-        }
+        // data when content moving toward leading edge
+        wrappedDataForLeading
     }
     
     private var wrappedDataForLeading: [Wrapped] {
@@ -167,27 +151,6 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
         return res
     }
     
-    private var wrappedDataForTrailing: [Wrapped] {
-        precondition(data.count > 0)
-        var res: [Wrapped] = []
-        res.reserveCapacity(elemCount)
-        let reversedData = data.reversed()
-                
-        for i in 0..<elemCount {
-            let i = i + elemOffset
-            let (batch, idx) = i.quotientAndRemainder(dividingBy: data.count)
-            
-            let elemIdx = reversedData.index(reversedData.startIndex, offsetBy: idx)
-            let elem = reversedData[elemIdx]
-
-            // because there can be multiple the same elements, we wrap them so
-            // they have different id's
-            let wrapped = Wrapped(elem: elem, id: idKeyPath, batch: batch)
-            res.append(wrapped)
-        }
-        return res.reversed()
-    }
-    
     private struct Wrapped: Identifiable {
         var elem: Data.Element
         var id: NewID
@@ -206,8 +169,8 @@ struct Carousel<Data, ID, Content>: View where Data: RandomAccessCollection, ID:
 
 struct CarouselPreview: View {
     @State private var words: [String] = (1...3).map { "\($0)" }
-    @State private var xOffset1: Double = 0.1
-    @State private var xOffset2: Double = -0.1
+    @State private var xOffset1: Double = 0.0
+    @State private var xOffset2: Double = 0.0
 
     static let interval: TimeInterval = 0.2
     @State private var timer = Timer.publish(every: interval, on: .main, in: .common).autoconnect()
@@ -224,7 +187,7 @@ struct CarouselPreview: View {
                 .frame(width: geo.size.width, height: geo.size.height)
                 .onReceive(timer) { _ in
                     withAnimation(.linear(duration: Self.interval)) {
-                        xOffset1 += 10
+                        xOffset1 -= 10
                     }
                 }
             }
@@ -264,9 +227,10 @@ struct CarouselPreview: View {
         .font(.title)
     }
     
+    // this carousel moves toward trailing edge
     @ViewBuilder
     private var carousel1: some View {
-        Carousel(words.reversed(), id: \.self, xOffset: $xOffset1) { (str, batch: Int) in
+        Carousel(words, id: \.self, xOffset: $xOffset1) { (str, batch: Int) in
             VStack {
                 Text(str)
                 Text("batch: \(batch)")
@@ -274,9 +238,12 @@ struct CarouselPreview: View {
             .frame(width: 100, height: 100)
             .background(Color.orange)
             .cornerRadius(8)
+            .environment(\.layoutDirection, .leftToRight)
         }
+        .environment(\.layoutDirection, .rightToLeft)
     }
     
+    // this carousel moves toward leading edge
     @ViewBuilder
     private var carousel2: some View {
         Carousel(words, id: \.self, xOffset: $xOffset2) { (str, batch: Int) in
